@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: task-management-app
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: mustafa
+    hikari:
+      schema: todo_app_project
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+      boot:allow_jdbc_metadata_access: false
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE
