@@ -5,6 +5,7 @@ import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
 import com.example.Task_Management_App.dto.response.JwtResponse;
 import com.example.Task_Management_App.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +20,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signUpRequest) {
-        Users users = authService.registerUser(signUpRequest);
+    public ResponseEntity<?> signUpUser(@RequestBody @Valid SignUpRequest signUpRequest) {
+        Users users = authService.signUpUser(signUpRequest);
         return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtResponse> loginUser(@RequestBody @Valid LoginRequest loginRequest) {
         JwtResponse jwtResponse = authService.loginUser(loginRequest);
         return ResponseEntity.ok(jwtResponse);
     }

@@ -1,6 +1,8 @@
 package com.example.Task_Management_App.service;
 
+import com.example.Task_Management_App.dao.entity.Role;
 import com.example.Task_Management_App.dao.entity.Users;
+import com.example.Task_Management_App.dao.repository.RoleRepository;
 import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
@@ -24,12 +26,18 @@ public class AuthService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RoleRepository roleRepository;
 
-    public Users registerUser(SignUpRequest signUpRequest) {
+    public Users signUpUser(SignUpRequest signUpRequest) {
         if (usersRepository.existsByEmail(signUpRequest.getEmail())) {
             throw new RuntimeException("Email is already taken");
         }
         Users users = new Users();
+
+        Role defaultRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Default role not found"));
+
+        users.getRoles().add(defaultRole);
         users.setUsername(signUpRequest.getUsername());
         users.setEmail(signUpRequest.getEmail());
         users.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));

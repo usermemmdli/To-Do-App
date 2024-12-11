@@ -2,7 +2,7 @@ package com.example.Task_Management_App.config;
 
 import com.example.Task_Management_App.security.JwtAuthFilter;
 import com.example.Task_Management_App.security.JwtService;
-import com.example.Task_Management_App.service.UserDetailsService;
+import com.example.Task_Management_App.security.MyUsersDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final UserDetailsService userDetailsService;
+    private final MyUsersDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
@@ -29,8 +29,9 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
-                                         "/swagger-ui/index.html").permitAll()
-                        .requestMatchers("/api/project/**").hasRole("USER")
+                                "/swagger-ui/index.html").permitAll()
+                        .requestMatchers("/api/project/**",
+                                "/api/task/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .anonymous(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtAuthFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class);

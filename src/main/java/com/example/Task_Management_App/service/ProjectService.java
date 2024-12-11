@@ -21,12 +21,14 @@ public class ProjectService {
 
     public ResponseEntity<?> createProject(String currentUserEmail, ProjectRequest projectRequest) {
         Users users = usersRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("wdqd"));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + currentUserEmail));
 
-        Project project = ProjectMapper.toProject(projectRequest);
+        Project project = projectMapper.toProject(projectRequest);
+        project.setUsers(users);
         Project savedProject = projectRepository.save(project);
-        ProjectMapper.toProjectResponse(savedProject);
-
-        return ResponseEntity.ok(HttpStatus.CREATED);
+        ProjectResponse projectResponse = projectMapper.toProjectResponse(savedProject);
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectResponse);
     }
+
+
 }
