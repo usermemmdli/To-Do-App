@@ -2,6 +2,7 @@ package com.example.Task_Management_App.controller;
 
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import com.example.Task_Management_App.dto.response.ProjectResponse;
+import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import com.example.Task_Management_App.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
+    private final AuthenticatedHelperService authenticatedHelperService;
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> createProject(@RequestBody @Valid ProjectRequest projectRequest) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentUserEmail = authentication.getName();
-            ResponseEntity<?> project = projectService.createProject(currentUserEmail, projectRequest);
+            String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+            ResponseEntity<ProjectResponse> project = projectService.createProject(currentUserEmail, projectRequest);
             return ResponseEntity.ok(HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");

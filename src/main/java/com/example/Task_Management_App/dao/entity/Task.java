@@ -24,7 +24,7 @@ public class Task {
     String description;
     Boolean completed;
     @Enumerated(EnumType.STRING)
-    Priority priority;
+    private Priority priority;
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.EAGER)
     Project project;

@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 @Data
 @Builder
 public class ProjectResponse {
+    private Long id;
     private String name;
     private String description;
     private Timestamp createdAt;

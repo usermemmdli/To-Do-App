@@ -1,8 +1,10 @@
 package com.example.Task_Management_App.mapper;
 
 import com.example.Task_Management_App.dao.entity.Task;
+import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
 import com.example.Task_Management_App.dto.response.TaskResponse;
+import com.example.Task_Management_App.enums.Priority;
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,12 @@ public class TaskMapper {
                 .completed(taskRequest.getCompleted())
                 .createdAt(Timestamp.from(Instant.now()))
                 .updatedAt(Timestamp.from(Instant.now()))
+                .build();
+    }
+
+    public Task toTask(TaskPriorityRequest taskPriorityRequest) {
+        return Task.builder()
+                .priority(taskPriorityRequest.getPriority())
                 .build();
     }
 

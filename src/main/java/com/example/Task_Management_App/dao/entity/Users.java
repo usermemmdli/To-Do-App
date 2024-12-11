@@ -1,6 +1,7 @@
 package com.example.Task_Management_App.dao.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jdk.jfr.Enabled;
 import lombok.*;
@@ -28,6 +29,7 @@ public class Users implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String username;
+    @Email
     @Pattern(
             regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
             message = "Please enter a valid email address"
