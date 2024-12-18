@@ -36,5 +36,5 @@ public class TaskController {
         taskService.setTaskPriority(currentUserEmail, taskPriorityRequest);
     }
 
-
+    @PutMapping
 }
