@@ -5,6 +5,8 @@ import com.example.Task_Management_App.dao.entity.Task;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.ProjectRepository;
 import com.example.Task_Management_App.dao.repository.TaskRepository;
+import com.example.Task_Management_App.dto.request.EditTaskRequest;
+import com.example.Task_Management_App.dto.request.TaskCompletedRequest;
 import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
 import com.example.Task_Management_App.dto.response.TaskResponse;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -44,16 +47,55 @@ public class TaskService {
     }
 
     public void setTaskPriority(String currentUserEmail,
-                                        @Valid TaskPriorityRequest taskPriorityRequest) {
+                                @Valid TaskPriorityRequest taskPriorityRequest) {
+        updateTask(currentUserEmail, taskPriorityRequest.getTaskId(),
+                task -> task.setPriority(taskPriorityRequest.getPriority()));
+    }
+
+    public void setCompletedTask(String currentUserEmail,
+                                 @Valid TaskCompletedRequest taskCompletedRequest) {
+        updateTask(currentUserEmail, taskCompletedRequest.getTaskId(),
+                task -> task.setCompleted(taskCompletedRequest.getCompleted()));
+    }
+
+    private void updateTask(String currentUserEmail, Long id,
+                            Consumer<Task> updateFunction) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        Task task = taskRepository.findById(taskPriorityRequest.getTaskId())
+        Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found or does not belong to the user"));
 
-        task.setPriority(taskPriorityRequest.getPriority());
+        updateFunction.accept(task);
         task.setUpdatedAt(Timestamp.from(Instant.now()));
         Task updatedTask = taskRepository.save(task);
         taskMapper.toTaskResponse(updatedTask);
     }
 
+    public TaskResponse editTask(String currentUserEmail,
+                                 @Valid EditTaskRequest editTaskRequest) {
+        Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+        return taskRepository.findById(editTaskRequest.getTaskId())
+                .map(task -> {
+                    if (editTaskRequest.getTitle() != null) {
+                        task.setTitle(editTaskRequest.getTitle());
+                    }
+                    if (editTaskRequest.getDescription() != null) {
+                        task.setDescription(editTaskRequest.getDescription());
+                    }
+                    task.setUpdatedAt(Timestamp.from(Instant.now()));
+                    return taskMapper.toTaskResponse(taskRepository.save(task));
+                })
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+    }
 
+    public void deleteTask(String currentUserEmail, Long id) {
+        Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found or does not belong to the user"));
+        Project project = task.getProject();
+        if (!project.getUsers().getId().equals(users.getId())) {
+            throw new RuntimeException("Task does not belong to the user");
+        }
+        taskRepository.delete(task);
+        taskRepository.flush();
+    }
 }

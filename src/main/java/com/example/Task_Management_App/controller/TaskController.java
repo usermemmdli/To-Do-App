@@ -1,5 +1,7 @@
 package com.example.Task_Management_App.controller;
 
+import com.example.Task_Management_App.dto.request.EditTaskRequest;
+import com.example.Task_Management_App.dto.request.TaskCompletedRequest;
 import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
 import com.example.Task_Management_App.dto.response.TaskResponse;
@@ -36,5 +38,27 @@ public class TaskController {
         taskService.setTaskPriority(currentUserEmail, taskPriorityRequest);
     }
 
-    @PutMapping
+    @PutMapping("/set-completed")
+    @PreAuthorize("hasRole('USER')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void setCompletedTask(@RequestBody @Valid TaskCompletedRequest taskCompletedRequest) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        taskService.setCompletedTask(currentUserEmail, taskCompletedRequest);
+    }
+
+    @PutMapping("/edit-task")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<TaskResponse> editTask(@RequestBody @Valid EditTaskRequest editTaskRequest) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        TaskResponse taskResponse = taskService.editTask(currentUserEmail, editTaskRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(taskResponse);
+    }
+
+    @DeleteMapping("/delete-task/{id}")
+    @PreAuthorize("hasRole('USER')")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteTask(@PathVariable Long id) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        taskService.deleteTask(currentUserEmail, id);
+    }
 }
