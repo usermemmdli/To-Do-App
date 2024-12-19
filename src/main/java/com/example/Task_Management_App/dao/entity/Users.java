@@ -39,7 +39,7 @@ public class Users implements UserDetails {
     Timestamp createdAt;
     Timestamp updatedAt;
     @OneToMany(mappedBy = "users",
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL)
     List<Project> projects;
     @ManyToMany(fetch = FetchType.EAGER)

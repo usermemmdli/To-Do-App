@@ -7,6 +7,7 @@ import com.example.Task_Management_App.dto.response.JwtResponse;
 import com.example.Task_Management_App.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +23,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signUpUser(@RequestBody @Valid SignUpRequest signUpRequest) {
         Users users = authService.signUpUser(signUpRequest);
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
     }
 
     @PostMapping("/login")

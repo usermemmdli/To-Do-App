@@ -26,7 +26,7 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Priority priority;
     @JoinColumn(name = "project_id", referencedColumnName = "id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     Project project;
     Timestamp createdAt;
     Timestamp updatedAt;

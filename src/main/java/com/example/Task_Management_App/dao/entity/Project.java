@@ -23,7 +23,7 @@ public class Project {
     String name;
     String description;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     Users users;
     Timestamp createdAt;
     Timestamp updatedAt;
