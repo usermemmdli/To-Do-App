@@ -1,5 +1,6 @@
 package com.example.Task_Management_App.controller;
 
+import com.example.Task_Management_App.dto.request.ProjectEditRequest;
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import com.example.Task_Management_App.dto.response.ProjectResponse;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
@@ -9,12 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/api/project")
@@ -23,17 +20,27 @@ public class ProjectController {
     private final ProjectService projectService;
     private final AuthenticatedHelperService authenticatedHelperService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> createProject(@RequestBody @Valid ProjectRequest projectRequest) {
-        try {
-            String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
-            ResponseEntity<ProjectResponse> project = projectService.createProject(currentUserEmail, projectRequest);
-            return ResponseEntity.ok(HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
-        }
+    public ResponseEntity<ProjectResponse> createProject(@RequestBody @Valid ProjectRequest projectRequest) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        ProjectResponse project = projectService.createProject(currentUserEmail, projectRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(project);
+    }
+
+    @PutMapping("/edit-project")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ProjectResponse> editProject(@RequestBody @Valid ProjectEditRequest projectEditRequest) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        ProjectResponse project = projectService.editProject(currentUserEmail, projectEditRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(project);
+    }
+
+    @DeleteMapping("/delete-project/{id}")
+    @PreAuthorize("hasRole('USER')")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteProject(@PathVariable Long id) {
+        String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
+        projectService.deleteProject(currentUserEmail, id);
     }
 }

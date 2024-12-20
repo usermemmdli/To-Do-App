@@ -5,7 +5,7 @@ import com.example.Task_Management_App.dao.entity.Task;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.ProjectRepository;
 import com.example.Task_Management_App.dao.repository.TaskRepository;
-import com.example.Task_Management_App.dto.request.EditTaskRequest;
+import com.example.Task_Management_App.dto.request.TaskEditRequest;
 import com.example.Task_Management_App.dto.request.TaskCompletedRequest;
 import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
@@ -71,7 +71,7 @@ public class TaskService {
     }
 
     public TaskResponse editTask(String currentUserEmail,
-                                 @Valid EditTaskRequest editTaskRequest) {
+                                 @Valid TaskEditRequest editTaskRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         return taskRepository.findById(editTaskRequest.getTaskId())
                 .map(task -> {
@@ -93,9 +93,8 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Task not found or does not belong to the user"));
         Project project = task.getProject();
         if (!project.getUsers().getId().equals(users.getId())) {
-            throw new RuntimeException("Task does not belong to the user");
+            throw new RuntimeException("Task cannot be deleted! Task does not belong to the user");
         }
-        taskRepository.delete(task);
-        taskRepository.flush();
+        taskRepository.deleteById(id);
     }
 }

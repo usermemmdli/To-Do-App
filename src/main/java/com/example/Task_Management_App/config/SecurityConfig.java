@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
-                                "/swagger-ui/index.html").permitAll()
+                                "/swagger-ui/**").permitAll()
                         .requestMatchers("/api/project/**",
                                 "/api/task/**").hasRole("USER")
                         .anyRequest().authenticated())

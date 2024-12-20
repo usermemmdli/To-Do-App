@@ -1,6 +1,6 @@
 package com.example.Task_Management_App.controller;
 
-import com.example.Task_Management_App.dto.request.EditTaskRequest;
+import com.example.Task_Management_App.dto.request.TaskEditRequest;
 import com.example.Task_Management_App.dto.request.TaskCompletedRequest;
 import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
@@ -48,7 +48,7 @@ public class TaskController {
 
     @PutMapping("/edit-task")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<TaskResponse> editTask(@RequestBody @Valid EditTaskRequest editTaskRequest) {
+    public ResponseEntity<TaskResponse> editTask(@RequestBody @Valid TaskEditRequest editTaskRequest) {
         String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
         TaskResponse taskResponse = taskService.editTask(currentUserEmail, editTaskRequest);
         return ResponseEntity.status(HttpStatus.OK).body(taskResponse);

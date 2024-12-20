@@ -1,15 +1,13 @@
 package com.example.Task_Management_App.dto.request;
 
-import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Data
-@Builder
-public class EditTaskRequest {
-    private Long taskId;
-    private String title;
+public class ProjectEditRequest {
+    private Long projectId;
+    private String name;
     private String description;
     private Timestamp updatedAt;
 }
