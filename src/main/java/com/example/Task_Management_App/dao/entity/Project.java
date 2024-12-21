@@ -29,6 +29,7 @@ public class Project {
     Timestamp updatedAt;
     @OneToMany(mappedBy = "project",
             fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL)
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     List<Task> tasks;
 }

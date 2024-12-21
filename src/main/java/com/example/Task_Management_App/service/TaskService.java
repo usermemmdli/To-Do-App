@@ -16,12 +16,14 @@ import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.function.Consumer;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TaskService {
     private final AuthenticatedHelperService authenticatedHelperService;
