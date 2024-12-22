@@ -3,13 +3,11 @@ package com.example.Task_Management_App.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Data
-@Builder
 public class SignUpRequest {
     private String username;
     @Email

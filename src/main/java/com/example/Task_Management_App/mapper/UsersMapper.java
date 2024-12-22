@@ -1,7 +1,7 @@
 package com.example.Task_Management_App.mapper;
 
 import com.example.Task_Management_App.dao.entity.Users;
-import com.example.Task_Management_App.dto.response.UsersResponse;
+import com.example.Task_Management_App.dto.response.UserResponse;
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +15,8 @@ public class UsersMapper {
                 .build();
     }
 
-    public UsersResponse toUsersResponse(Users users) {
-        return UsersResponse.builder()
+    public UserResponse toUsersResponse(Users users) {
+        return UserResponse.builder()
                 .username(users.getUsername())
                 .email(users.getEmail())
                 .createdAt(users.getCreatedAt())

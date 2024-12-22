@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 
 @Data
 @Builder
-public class UsersResponse {
+public class UserResponse {
     private String username;
     private String email;
     private Timestamp createdAt;
