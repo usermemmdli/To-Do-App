@@ -7,6 +7,9 @@ import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
 import com.example.Task_Management_App.dto.response.JwtResponse;
+import com.example.Task_Management_App.exception.InvalidEmailException;
+import com.example.Task_Management_App.exception.InvalidEmailOrPasswordException;
+import com.example.Task_Management_App.exception.RoleNotFoundException;
 import com.example.Task_Management_App.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,21 +31,21 @@ public class AuthService {
     private final JwtService jwtService;
     private final RoleRepository roleRepository;
 
-    public Users signUpUser(SignUpRequest signUpRequest) {
+    public void signUpUser(SignUpRequest signUpRequest) {
         if (usersRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new RuntimeException("Email is already taken");
+            throw new InvalidEmailException("Email is already taken");
         }
         Users users = new Users();
 
         Role defaultRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
+                .orElseThrow(() -> new RoleNotFoundException("Default role not found"));
 
         users.getRoles().add(defaultRole);
         users.setUsername(signUpRequest.getUsername());
         users.setEmail(signUpRequest.getEmail());
         users.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         users.setCreatedAt(Timestamp.from(Instant.now()));
-        return usersRepository.save(users);
+        usersRepository.save(users);
     }
 
     public JwtResponse loginUser(LoginRequest loginRequest) {
@@ -55,7 +58,7 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         Users users = usersRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new InvalidEmailOrPasswordException("Email or password is invalid"));
         String accessToken = jwtService.createAccessToken(users);
         String refreshToken = jwtService.createRefreshToken(users);
 

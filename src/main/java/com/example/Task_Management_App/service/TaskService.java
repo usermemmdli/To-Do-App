@@ -11,6 +11,9 @@ import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
 import com.example.Task_Management_App.dto.request.TaskRequest;
 import com.example.Task_Management_App.dto.response.TaskResponse;
 import com.example.Task_Management_App.enums.Priority;
+import com.example.Task_Management_App.exception.ProjectNotFoundException;
+import com.example.Task_Management_App.exception.TaskCannotDeletedException;
+import com.example.Task_Management_App.exception.TaskNotFoundException;
 import com.example.Task_Management_App.mapper.TaskMapper;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import jakarta.validation.Valid;
@@ -35,7 +38,7 @@ public class TaskService {
                                    @Valid TaskRequest taskRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         Project project = projectRepository.findByIdAndUsersId(taskRequest.getProjectId(), users.getId())
-                .orElseThrow(() -> new RuntimeException("Project not found or does not belong to the user"));
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found or does not belong to the user"));
 
         Task task = taskMapper.toTask(taskRequest);
         task.setProject(project);
@@ -64,7 +67,7 @@ public class TaskService {
                             Consumer<Task> updateFunction) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found or does not belong to the user"));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found or does not belong to the user"));
 
         updateFunction.accept(task);
         task.setUpdatedAt(Timestamp.from(Instant.now()));
@@ -86,16 +89,16 @@ public class TaskService {
                     task.setUpdatedAt(Timestamp.from(Instant.now()));
                     return taskMapper.toTaskResponse(taskRepository.save(task));
                 })
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
     }
 
     public void deleteTask(String currentUserEmail, Long id) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found or does not belong to the user"));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found or does not belong to the user"));
         Project project = task.getProject();
         if (!project.getUsers().getId().equals(users.getId())) {
-            throw new RuntimeException("Task cannot be deleted! Task does not belong to the user");
+            throw new TaskCannotDeletedException("Task cannot be deleted! Task does not belong to the user");
         }
         taskRepository.deleteById(id);
     }

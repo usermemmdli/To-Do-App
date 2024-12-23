@@ -3,10 +3,10 @@ package com.example.Task_Management_App.service;
 import com.example.Task_Management_App.dao.entity.Project;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.ProjectRepository;
-import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.ProjectEditRequest;
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import com.example.Task_Management_App.dto.response.ProjectResponse;
+import com.example.Task_Management_App.exception.ProjectNotFoundException;
 import com.example.Task_Management_App.mapper.ProjectMapper;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,6 @@ public class ProjectService {
     private final AuthenticatedHelperService authenticatedHelperService;
     private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
-    private final UsersRepository usersRepository;
 
     public ProjectResponse createProject(String currentUserEmail, ProjectRequest projectRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
@@ -45,13 +44,13 @@ public class ProjectService {
                     project.setUpdatedAt(Timestamp.from(Instant.now()));
                     return projectMapper.toProjectResponse(projectRepository.save(project));
                 })
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
     }
 
     public void deleteProject(String currentUserEmail, Long id) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
         if (!project.getUsers().getId().equals(users.getId())) {
             throw new RuntimeException("Project cannot be deleted! Project does not belong to the user");
         }

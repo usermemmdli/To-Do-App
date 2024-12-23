@@ -5,6 +5,7 @@ import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.UserChangePasswordRequest;
 import com.example.Task_Management_App.dto.request.UserEditRequest;
 import com.example.Task_Management_App.dto.response.UserResponse;
+import com.example.Task_Management_App.exception.UserCannotDeletedException;
 import com.example.Task_Management_App.mapper.UsersMapper;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class UsersService {
     public void deleteUser(String currentUserEmail, Long id) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         if (!users.getId().equals(id)) {
-            throw new RuntimeException("User cannot be deleted! User does not belong to the user");
+            throw new UserCannotDeletedException("User cannot be deleted! User does not belong to the user");
         }
         usersRepository.deleteById(id);
     }

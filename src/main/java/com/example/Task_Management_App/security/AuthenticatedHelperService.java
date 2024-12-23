@@ -2,6 +2,7 @@ package com.example.Task_Management_App.security;
 
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.UsersRepository;
+import com.example.Task_Management_App.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +15,7 @@ public class AuthenticatedHelperService {
 
     public Users getAuthenticatedUser(String currentUserEmail) {
         return usersRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + currentUserEmail));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + currentUserEmail));
     }
 
     public String getCurrentUserEmail() {
