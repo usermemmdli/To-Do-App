@@ -12,7 +12,7 @@ import java.time.Instant;
 @Component
 @Mapper(componentModel = "spring")
 public class ProjectMapper {
-    public Project toProject(ProjectRequest projectRequest) {
+    public static Project toProject(ProjectRequest projectRequest) {
         return Project.builder()
                 .name(projectRequest.getName())
                 .description(projectRequest.getDescription())
@@ -21,7 +21,7 @@ public class ProjectMapper {
                 .build();
     }
 
-    public ProjectResponse toProjectResponse(Project project) {
+    public static ProjectResponse toProjectResponse(Project project) {
         return ProjectResponse.builder()
                 .name(project.getName())
                 .description(project.getDescription())
