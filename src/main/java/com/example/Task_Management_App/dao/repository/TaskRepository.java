@@ -13,4 +13,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Optional<Task> findByPriority(Priority priority);
 
     Optional<Task> findByCompleted(Boolean completed);
+
+    Optional<Object> findByTitle(String title);
 }

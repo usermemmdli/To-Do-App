@@ -18,7 +18,6 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class UsersService {
     private final UsersRepository usersRepository;
-    private final UsersMapper usersMapper;
     private final AuthenticatedHelperService authenticatedHelperService;
 
     public UserResponse editUser(String currentUserEmail, UserEditRequest userEditRequest) {
@@ -27,7 +26,7 @@ public class UsersService {
         users.setEmail(userEditRequest.getEmail());
         users.setUpdatedAt(Timestamp.from(Instant.now()));
         Users savedUser = usersRepository.save(users);
-        return usersMapper.toUsersResponse(savedUser);
+        return UsersMapper.toUsersResponse(savedUser);
     }
 
     public void changePassword(String currentUserEmail, UserChangePasswordRequest userChangePasswordRequest) {

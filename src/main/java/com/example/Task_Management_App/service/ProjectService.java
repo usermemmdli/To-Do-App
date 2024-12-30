@@ -19,15 +19,14 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class ProjectService {
     private final AuthenticatedHelperService authenticatedHelperService;
-    private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
 
     public ProjectResponse createProject(String currentUserEmail, ProjectRequest projectRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        Project project = projectMapper.toProject(projectRequest);
+        Project project = ProjectMapper.toProject(projectRequest);
         project.setUsers(users);
         Project savedProject = projectRepository.save(project);
-        return projectMapper.toProjectResponse(savedProject);
+        return ProjectMapper.toProjectResponse(savedProject);
     }
 
     public ProjectResponse editProject(String currentUserEmail, ProjectEditRequest projectEditRequest) {
@@ -42,7 +41,7 @@ public class ProjectService {
                     }
                     project.setUsers(users);
                     project.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return projectMapper.toProjectResponse(projectRepository.save(project));
+                    return ProjectMapper.toProjectResponse(projectRepository.save(project));
                 })
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
     }

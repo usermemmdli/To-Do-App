@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class TaskService {
     private final AuthenticatedHelperService authenticatedHelperService;
-    private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
 
@@ -40,7 +39,7 @@ public class TaskService {
         Project project = projectRepository.findByIdAndUsersId(taskRequest.getProjectId(), users.getId())
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found or does not belong to the user"));
 
-        Task task = taskMapper.toTask(taskRequest);
+        Task task = TaskMapper.toTask(taskRequest);
         task.setProject(project);
         if (taskRequest.getPriority() == null) {
             task.setPriority(Priority.Low);
@@ -48,7 +47,7 @@ public class TaskService {
             task.setPriority(taskRequest.getPriority());
         }
         Task savedTask = taskRepository.save(task);
-        return taskMapper.toTaskResponse(savedTask);
+        return TaskMapper.toTaskResponse(savedTask);
     }
 
     public void setTaskPriority(String currentUserEmail,
@@ -72,7 +71,7 @@ public class TaskService {
         updateFunction.accept(task);
         task.setUpdatedAt(Timestamp.from(Instant.now()));
         Task updatedTask = taskRepository.save(task);
-        taskMapper.toTaskResponse(updatedTask);
+        TaskMapper.toTaskResponse(updatedTask);
     }
 
     public TaskResponse editTask(String currentUserEmail,
@@ -87,7 +86,7 @@ public class TaskService {
                         task.setDescription(editTaskRequest.getDescription());
                     }
                     task.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return taskMapper.toTaskResponse(taskRepository.save(task));
+                    return TaskMapper.toTaskResponse(taskRepository.save(task));
                 })
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
     }
