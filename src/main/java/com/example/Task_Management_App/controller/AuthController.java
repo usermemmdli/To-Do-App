@@ -1,6 +1,5 @@
 package com.example.Task_Management_App.controller;
 
-import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
 import com.example.Task_Management_App.dto.response.JwtResponse;
