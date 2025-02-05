@@ -5,15 +5,23 @@ import com.example.Task_Management_App.dto.response.ProjectResponse;
 import com.example.Task_Management_App.service.ProjectService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,8 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ProjectControllerTest {
-    @MockBean
+    @Mock
     private ProjectService projectService;
+    @MockBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -34,6 +44,10 @@ public class ProjectControllerTest {
 
     @Test
     void testCreateProject() throws Exception {
+        UserDetails userDetails = new User("admin", "password", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
         ProjectRequest projectRequest = new ProjectRequest();
         projectRequest.setName("test");
         projectRequest.setDescription("test");
@@ -48,9 +62,7 @@ public class ProjectControllerTest {
                 .updatedAt(projectRequest.getUpdatedAt())
                 .build();
 
-        String currentUserEmail = "user@example.com";
-
-        when(projectService.createProject(eq(currentUserEmail), any(ProjectRequest.class)))
+        when(projectService.createProject(eq("admin"), any(ProjectRequest.class)))
                 .thenReturn(projectResponse);
 
         mockMvc.perform(post("/api/project/create")
@@ -59,4 +71,5 @@ public class ProjectControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(projectResponse)));
     }
+
 }

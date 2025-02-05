@@ -87,8 +87,6 @@ public class AuthControllerTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(jwtService.createAccessToken(any(Users.class)))
-                .thenReturn(expectedToken);
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -99,6 +97,5 @@ public class AuthControllerTest {
                 .andDo(print());
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwtService).createAccessToken(any(Users.class));
     }
 }

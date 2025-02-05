@@ -15,11 +15,11 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 public class JwtService {
-    private final String SECRET_KEY = "dThQelozc0d4MkM3ZEYxVnE0TG1Ob0U4VHlKd1JhVWtLakFpb3JDQkhSWE9jbndvSQ==";
-    private final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000; // 15 deqiqe
+    private static final String SECRET_KEY = "dThQelozc0d4MkM3ZEYxVnE0TG1Ob0U4VHlKd1JhVWtLakFpb3JDQkhSWE9jbndvSQ==";
+    private static final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000; // 15 deqiqe
     private final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000; // 7 gun
 
-    public String createAccessToken(Users users) {
+    public static String createAccessToken(Users users) {
         return Jwts.builder()
                 .setSubject(users.getEmail())
                 .claim("roles", users.getAuthorities())
@@ -27,6 +27,14 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+    }
+
+    public static String extractUsername(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
     public String createRefreshToken(Users users) {
@@ -39,13 +47,13 @@ public class JwtService {
                 .compact();
     }
 
-    public Claims validateToken(String token) {
+    public static boolean validateToken(String token) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(getSignKey())
                     .build()
                     .parseClaimsJws(token)
-                    .getBody();
+                    .getBody().isEmpty();
         } catch (ExpiredJwtException e) {
             log.error("Token expired");
             throw e;
@@ -55,7 +63,7 @@ public class JwtService {
         }
     }
 
-    private Key getSignKey() {
+    private static Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
