@@ -5,6 +5,7 @@ import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
 import com.example.Task_Management_App.dto.response.JwtResponse;
+import com.example.Task_Management_App.exception.UserNotFoundException;
 import com.example.Task_Management_App.security.JwtService;
 import com.example.Task_Management_App.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final JwtService jwtService;
     private final UsersRepository usersRepository;
 
     @PostMapping("/signup")
@@ -39,24 +41,24 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
 
-        if (refreshToken == null || !JwtService.validateToken(refreshToken)) {
+        if (refreshToken == null || !jwtService.validateToken(refreshToken)) {
             return ResponseEntity.status(401).body("Invalid refresh token");
         }
 
-        String email = JwtService.extractUsername(refreshToken);
+        String email = jwtService.extractUsername(refreshToken);
 
         if (email == null) {
             return ResponseEntity.status(401).body("Invalid refresh token");
         }
 
         Users users = usersRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        String newAccessToken = JwtService.createAccessToken(users);
+        String newAccessToken = jwtService.createAccessToken(users);
 
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", newAccessToken);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

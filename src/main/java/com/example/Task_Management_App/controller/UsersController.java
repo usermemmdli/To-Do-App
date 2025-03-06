@@ -26,7 +26,7 @@ public class UsersController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
 
-    @PutMapping("/edit-user/change-password")
+    @PatchMapping("/edit-user/change-password")
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
     public void changePassword(@RequestBody UserChangePasswordRequest userChangePasswordRequest) {

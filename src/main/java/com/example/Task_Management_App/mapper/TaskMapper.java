@@ -12,7 +12,7 @@ import java.time.Instant;
 @Component
 @Mapper(componentModel = "spring")
 public class TaskMapper {
-    public static Task toTask(TaskRequest taskRequest) {
+    public Task toTask(TaskRequest taskRequest) {
         return Task.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
@@ -22,14 +22,14 @@ public class TaskMapper {
                 .build();
     }
 
-    public static TaskResponse toTaskResponse(Task task) {
+    public TaskResponse toTaskResponse(Task task) {
         return TaskResponse.builder()
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .completed(task.getCompleted())
                 .priority(String.valueOf(task.getPriority()))
                 .createdAt(Timestamp.from(Instant.now()))
-                .updatedAt(Timestamp.from(Instant.now()))
+                .updatedAt(task.getUpdatedAt())
                 .build();
     }
 }

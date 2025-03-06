@@ -2,6 +2,7 @@ package com.example.Task_Management_App.security;
 
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.UsersRepository;
+import com.example.Task_Management_App.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +18,7 @@ public class MyUsersDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Users users = usersRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
         return User
                 .withUsername(users.getEmail())

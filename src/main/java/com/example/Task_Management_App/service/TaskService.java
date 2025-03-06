@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 public class TaskService {
     private final AuthenticatedHelperService authenticatedHelperService;
     private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
 
     public TaskResponse createTask(String currentUserEmail,
@@ -39,7 +40,7 @@ public class TaskService {
         Project project = projectRepository.findByIdAndUsersId(taskRequest.getProjectId(), users.getId())
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found or does not belong to the user"));
 
-        Task task = TaskMapper.toTask(taskRequest);
+        Task task = taskMapper.toTask(taskRequest);
         task.setProject(project);
         if (taskRequest.getPriority() == null) {
             task.setPriority(Priority.Low);
@@ -47,7 +48,7 @@ public class TaskService {
             task.setPriority(taskRequest.getPriority());
         }
         Task savedTask = taskRepository.save(task);
-        return TaskMapper.toTaskResponse(savedTask);
+        return taskMapper.toTaskResponse(savedTask);
     }
 
     public void setTaskPriority(String currentUserEmail,
@@ -70,8 +71,7 @@ public class TaskService {
 
         updateFunction.accept(task);
         task.setUpdatedAt(Timestamp.from(Instant.now()));
-        Task updatedTask = taskRepository.save(task);
-        TaskMapper.toTaskResponse(updatedTask);
+        taskRepository.save(task);
     }
 
     public TaskResponse editTask(String currentUserEmail,
@@ -86,7 +86,7 @@ public class TaskService {
                         task.setDescription(editTaskRequest.getDescription());
                     }
                     task.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return TaskMapper.toTaskResponse(taskRepository.save(task));
+                    return taskMapper.toTaskResponse(taskRepository.save(task));
                 })
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
     }

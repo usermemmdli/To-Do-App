@@ -30,7 +30,7 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).body(taskResponse);
     }
 
-    @PutMapping("/set-priority")
+    @PatchMapping("/set-priority")
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void setTaskPriority(@RequestBody @Valid TaskPriorityRequest taskPriorityRequest) {
@@ -38,7 +38,7 @@ public class TaskController {
         taskService.setTaskPriority(currentUserEmail, taskPriorityRequest);
     }
 
-    @PutMapping("/set-completed")
+    @PatchMapping("/set-completed")
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void setCompletedTask(@RequestBody @Valid TaskCompletedRequest taskCompletedRequest) {

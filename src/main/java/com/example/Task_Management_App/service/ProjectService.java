@@ -6,6 +6,7 @@ import com.example.Task_Management_App.dao.repository.ProjectRepository;
 import com.example.Task_Management_App.dto.request.ProjectEditRequest;
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import com.example.Task_Management_App.dto.response.ProjectResponse;
+import com.example.Task_Management_App.exception.ProjectCannotDeletedException;
 import com.example.Task_Management_App.exception.ProjectNotFoundException;
 import com.example.Task_Management_App.mapper.ProjectMapper;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
@@ -19,14 +20,15 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class ProjectService {
     private final AuthenticatedHelperService authenticatedHelperService;
+    private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
 
     public ProjectResponse createProject(String currentUserEmail, ProjectRequest projectRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        Project project = ProjectMapper.toProject(projectRequest);
+        Project project = projectMapper.toProject(projectRequest);
         project.setUsers(users);
         Project savedProject = projectRepository.save(project);
-        return ProjectMapper.toProjectResponse(savedProject);
+        return projectMapper.toProjectResponse(savedProject);
     }
 
     public ProjectResponse editProject(String currentUserEmail, ProjectEditRequest projectEditRequest) {
@@ -41,7 +43,7 @@ public class ProjectService {
                     }
                     project.setUsers(users);
                     project.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return ProjectMapper.toProjectResponse(projectRepository.save(project));
+                    return projectMapper.toProjectResponse(projectRepository.save(project));
                 })
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
     }
@@ -51,7 +53,7 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
         if (!project.getUsers().getId().equals(users.getId())) {
-            throw new RuntimeException("Project cannot be deleted! Project does not belong to the user");
+            throw new ProjectCannotDeletedException("Project cannot be deleted! Project does not belong to the user");
         }
         projectRepository.deleteById(id);
     }

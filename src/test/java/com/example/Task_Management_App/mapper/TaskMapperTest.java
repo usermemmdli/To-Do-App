@@ -4,6 +4,7 @@ import com.example.Task_Management_App.dao.entity.Task;
 import com.example.Task_Management_App.dto.request.TaskRequest;
 import com.example.Task_Management_App.enums.Priority;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 @Transactional
 @AutoConfigureMockMvc
 public class TaskMapperTest {
+    @Autowired
+    private TaskMapper taskMapper;
+
     @Test
     void toTask() {
         //Arrange
@@ -23,7 +27,7 @@ public class TaskMapperTest {
         request.setCompleted(false);
 
         //Actual
-        var actual = TaskMapper.toTask(request);
+        var actual = taskMapper.toTask(request);
 
         //Assert
         assert actual.getTitle().equals("test");
@@ -39,7 +43,7 @@ public class TaskMapperTest {
         request.setCompleted(false);
         request.setPriority(Priority.High);
 
-        var actual = TaskMapper.toTaskResponse(request);
+        var actual = taskMapper.toTaskResponse(request);
 
         assert actual.getTitle().equals("test");
         assert actual.getDescription().equals("test");

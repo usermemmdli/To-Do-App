@@ -91,4 +91,13 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<?> handleInvalidPasswordException(InvalidPasswordException e) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Password does not match");
+        body.put("message", e.getMessage());
+        body.put("timestamp", LocalDateTime.now());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }

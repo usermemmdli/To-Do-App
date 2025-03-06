@@ -19,7 +19,7 @@ public class JwtService {
     private static final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000; // 15 deqiqe
     private final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000; // 7 gun
 
-    public static String createAccessToken(Users users) {
+    public String createAccessToken(Users users) {
         return Jwts.builder()
                 .setSubject(users.getEmail())
                 .claim("roles", users.getAuthorities())
@@ -29,7 +29,7 @@ public class JwtService {
                 .compact();
     }
 
-    public static String extractUsername(String token) {
+    public String extractUsername(String token) {
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)
                 .parseClaimsJws(token)
@@ -47,7 +47,7 @@ public class JwtService {
                 .compact();
     }
 
-    public static boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(getSignKey())
