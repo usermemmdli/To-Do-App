@@ -3,6 +3,7 @@ package com.example.Task_Management_App.mapper;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dto.request.UserEditRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @AutoConfigureMockMvc
 public class UsersMapperTest {
+    @Autowired
+    private UsersMapper UsersMapper;
+
     @Test
     void toUser() {
         //Arrange

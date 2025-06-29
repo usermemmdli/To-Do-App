@@ -1,72 +1,104 @@
 package com.example.Task_Management_App.service;
 
+import com.example.Task_Management_App.dao.entity.Role;
 import com.example.Task_Management_App.dao.entity.Users;
+import com.example.Task_Management_App.dao.repository.RoleRepository;
 import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
 
+import com.example.Task_Management_App.dto.response.JwtResponse;
 import com.example.Task_Management_App.security.JwtService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@Transactional
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
-    @Autowired
+    @InjectMocks
+    private AuthService authService;
+    @Mock
+    private JwtService jwtService;
+    @Mock
     private UsersRepository usersRepository;
+    @Mock
+    private RoleRepository roleRepository;
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
-    private JwtService jwtService;
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void testSignUpUser() {
+        // Arrange
         SignUpRequest request = new SignUpRequest();
         request.setUsername("admin");
         request.setEmail("admin@admin.com");
         request.setPassword("admin");
 
-        Users user = new Users();
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEmail(request.getEmail());
-        usersRepository.save(user);
+        Role role = new Role();
+        role.setName("USER");
 
-        assertTrue(usersRepository.findByEmail(user.getEmail()).isPresent());
+        when(usersRepository.existsByEmail("admin@admin.com")).thenReturn(false);
+        when(roleRepository.findByName("USER")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode("admin")).thenReturn("encodedPassword");
+
+        // Act
+        authService.signUpUser(request);
+
+        // Assert
+        ArgumentCaptor<Users> captor = ArgumentCaptor.forClass(Users.class);
+        verify(usersRepository, times(1)).save(captor.capture());
+
+        Users savedUser = captor.getValue();
+        assertEquals("admin", savedUser.getUsername());
+        assertEquals("admin@admin.com", savedUser.getEmail());
+        assertEquals("encodedPassword", savedUser.getPassword());
+        assertEquals(role, savedUser.getRoles());
+        assertNotNull(savedUser.getCreatedAt());
     }
 
     @Test
-    void testLoginUserSuccess() {
+    void testLoginUser() {
+        //Arrange
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("test@example.com");
+        loginRequest.setEmail("user@example.com");
         loginRequest.setPassword("password");
 
         Users user = new Users();
-        user.setId(1L);
-        user.setEmail("test@example.com");
-        user.setPassword("password");
+        user.setEmail("user@example.com");
+        user.setUsername("testuser");
 
-        when(usersRepository.findByEmail(loginRequest.getEmail()))
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken("user@example.com", "password");
+
+        when(authenticationManager.authenticate(any(org.springframework.security.core.Authentication.class)))
+                .thenReturn(token);
+
+        when(usersRepository.findByEmail("user@example.com"))
                 .thenReturn(Optional.of(user));
 
-        when(jwtService.createAccessToken(user)).thenReturn("mockAccessToken");
-        when(jwtService.createRefreshToken(user)).thenReturn("mockRefreshToken");
+        when(jwtService.createAccessToken(user))
+                .thenReturn("access-token");
 
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(usersRepository).findByEmail(loginRequest.getEmail());
-        verify(jwtService).createAccessToken(user);
-        verify(jwtService).createRefreshToken(user);
+        when(jwtService.createRefreshToken(user))
+                .thenReturn("refresh-token");
+        // Act
+        JwtResponse response = authService.loginUser(loginRequest);
+
+        // Assert
+        assertEquals("access-token", response.getAccessToken());
+        assertEquals("refresh-token", response.getRefreshToken());
     }
 }

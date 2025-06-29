@@ -3,92 +3,140 @@ package com.example.Task_Management_App.service;
 import com.example.Task_Management_App.dao.entity.Project;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.ProjectRepository;
-import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.ProjectEditRequest;
+import com.example.Task_Management_App.dto.request.ProjectRequest;
+import com.example.Task_Management_App.dto.response.ProjectResponse;
+import com.example.Task_Management_App.mapper.ProjectMapper;
+import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Transactional
 @AutoConfigureMockMvc
 public class ProjectServiceTest {
-    @Autowired
+    @InjectMocks
     private ProjectService projectService;
-    @Autowired
+    @Mock
+    private AuthenticatedHelperService authenticatedHelperService;
+    @Mock
     private ProjectRepository projectRepository;
-    @Autowired
-    private UsersRepository usersRepository;
+    @Mock
+    private ProjectMapper projectMapper;
 
     @Test
     void testCreateProject() {
+        // Given
+        String currentUserEmail = "admin@example.com";
+
+        ProjectRequest request = new ProjectRequest();
+        request.setName("Test Project");
+        request.setDescription("Test Description");
+
         Users user = new Users();
-        user.setUsername("admin");
-        user.setPassword("admin");
-        user.setEmail("admin@admin.com");
-        usersRepository.save(user);
+        user.setEmail(currentUserEmail);
 
         Project project = new Project();
-        project.setName("test");
-        project.setDescription("test");
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
         project.setUsers(user);
-        projectRepository.save(project);
 
-        assertTrue(projectRepository.existsById(project.getId()));
+        ProjectResponse response = ProjectResponse.builder()
+                .id(1L)
+                .name("Test Project")
+                .description("Test Description")
+                .build();
+
+        // When
+        when(authenticatedHelperService.getAuthenticatedUser(currentUserEmail)).thenReturn(user);
+        when(projectRepository.save(any(Project.class))).thenReturn(project);
+        when(projectMapper.toProjectResponse(any(Project.class))).thenReturn(response);
+
+        // Then
+        ProjectResponse result = projectService.createProject(currentUserEmail, request);
+
+        assertEquals("Test Project", result.getName());
+        assertEquals("Test Description", result.getDescription());
+
+        verify(authenticatedHelperService).getAuthenticatedUser(currentUserEmail);
+        verify(projectRepository).save(any(Project.class));
+        verify(projectMapper).toProjectResponse(any(Project.class));
     }
 
     @Test
     void testEditProject() {
-        Users user = new Users();
-        user.setUsername("admin");
-        user.setPassword("admin");
-        user.setEmail("admin@admin.com");
-        usersRepository.save(user);
+        // Given
+        String currentUserEmail = "admin@example.com";
 
-        Project project = new Project();
-        project.setName("test");
-        project.setDescription("test");
-        project.setUsers(user);
-        projectRepository.save(project);
+        ProjectEditRequest editRequest = new ProjectEditRequest();
+        editRequest.setProjectId(1L);
+        editRequest.setName("Updated Project");
+        editRequest.setDescription("Updated Description");
 
-        ProjectEditRequest projectEditRequest = new ProjectEditRequest();
-        projectEditRequest.setName("test request");
-        projectEditRequest.setDescription("test request");
+        Project existingProject = new Project();
+        existingProject.setId(1L);
+        existingProject.setName("Old Name");
+        existingProject.setDescription("Old Description");
 
-        project.setName(projectEditRequest.getName());
-        project.setDescription(projectEditRequest.getDescription());
-        projectRepository.save(project);
+        Project updatedProject = new Project();
+        updatedProject.setId(editRequest.getProjectId());
+        updatedProject.setName(editRequest.getName());
+        updatedProject.setDescription(editRequest.getDescription());
 
-        Project updatedProject = projectRepository.findById(project.getId()).orElse(null);
+        ProjectResponse response = ProjectResponse.builder()
+                .id(1L)
+                .name("Updated Project")
+                .description("Updated Description")
+                .build();
 
-        assertThat(updatedProject).isNotNull();
-        assertThat(updatedProject.getName()).isEqualTo("test request");
-        assertThat(updatedProject.getDescription()).isEqualTo("test request");
-        assertThat(updatedProject.getUsers().getUsername()).isEqualTo("admin");
+        // When
+        when(authenticatedHelperService.getAuthenticatedUser(currentUserEmail)).thenReturn(new Users());
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(existingProject));
+        when(projectRepository.save(any(Project.class))).thenReturn(updatedProject);
+        when(projectMapper.toProjectResponse(updatedProject)).thenReturn(response);
+
+        ProjectResponse result = projectService.editProject(currentUserEmail, editRequest);
+
+        // Then
+        assertEquals("Updated Project", result.getName());
+        assertEquals("Updated Description", result.getDescription());
+
+        verify(authenticatedHelperService).getAuthenticatedUser(currentUserEmail);
+        verify(projectRepository).findById(1L);
+        verify(projectRepository).save(any(Project.class));
+        verify(projectMapper).toProjectResponse(updatedProject);
     }
 
     @Test
     void testDeleteProject() {
+        String email = "user@example.com";
+        Long projectId = 1L;
+
         Users user = new Users();
-        user.setUsername("admin");
-        user.setPassword("admin");
-        user.setEmail("admin@admin.com");
-        usersRepository.save(user);
+        user.setId(10L);
 
         Project project = new Project();
-        project.setName("test");
-        project.setDescription("test");
+        project.setId(projectId);
         project.setUsers(user);
-        projectRepository.save(project);
 
-        projectService.deleteProject(user.getEmail(), project.getId());
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
 
-        assertFalse(projectRepository.existsById(project.getId()));
+        // Method under test
+        projectService.deleteProject(email, projectId);
+
+        verify(authenticatedHelperService).getAuthenticatedUser(email);
+        verify(projectRepository).findById(projectId);
+        verify(projectRepository).deleteById(projectId);
     }
 }

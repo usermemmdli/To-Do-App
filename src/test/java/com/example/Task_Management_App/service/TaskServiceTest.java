@@ -5,182 +5,197 @@ import com.example.Task_Management_App.dao.entity.Task;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.ProjectRepository;
 import com.example.Task_Management_App.dao.repository.TaskRepository;
-import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.TaskCompletedRequest;
-import com.example.Task_Management_App.dto.request.TaskEditRequest;
 import com.example.Task_Management_App.dto.request.TaskPriorityRequest;
+import com.example.Task_Management_App.dto.request.TaskRequest;
+import com.example.Task_Management_App.dto.response.TaskResponse;
 import com.example.Task_Management_App.enums.Priority;
+import com.example.Task_Management_App.mapper.TaskMapper;
+import com.example.Task_Management_App.security.AuthenticatedHelperService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
 public class TaskServiceTest {
-    @Autowired
+    @InjectMocks
     private TaskService taskService;
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private UsersRepository usersRepository;
-    @Autowired
+    @Mock
+    private AuthenticatedHelperService authenticatedHelperService;
+    @Mock
     private ProjectRepository projectRepository;
+    @Mock
+    private TaskRepository taskRepository;
+    @Mock
+    private TaskMapper taskMapper;
 
     @Test
     void testCreateTask() {
+        String email = "user@example.com";
+
+        TaskRequest request = new TaskRequest();
+        request.setProjectId(1L);
+        request.setTitle("Test Task");
+        request.setPriority(null);
+
         Users user = new Users();
-        user.setUsername("admin");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user = usersRepository.save(user);
+        user.setId(10L);
+        user.setEmail(email);
 
         Project project = new Project();
-        project.setName("Test Project");
-        project.setDescription("Test");
+        project.setId(1L);
         project.setUsers(user);
-        projectRepository.save(project);
 
         Task task = new Task();
         task.setTitle("Test Task");
-        task.setDescription("Test");
-        task.setCompleted(true);
-        task.setPriority(Priority.High);
-        task.setProject(project);
-        task = taskRepository.save(task);
 
-        assertTrue(taskRepository.findById(task.getId()).isPresent());
+        Task savedTask = new Task();
+        savedTask.setId(100L);
+        savedTask.setTitle("Test Task");
+        savedTask.setPriority(Priority.Low);
+
+        TaskResponse response = TaskResponse.builder()
+                .id(task.getId())
+                .title(savedTask.getTitle())
+                .priority(String.valueOf(savedTask.getPriority()))
+                .build();
+
+        // Mocklar
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(projectRepository.findByIdAndUsersId(1L, user.getId())).thenReturn(Optional.of(project));
+        when(taskMapper.toTask(request)).thenReturn(task);
+        when(taskRepository.save(any(Task.class))).thenReturn(savedTask);
+        when(taskMapper.toTaskResponse(savedTask)).thenReturn(response);
+
+        // Servis call
+        TaskResponse result = taskService.createTask(email, request);
+
+        assertEquals("Test Task", result.getTitle());
+        verify(authenticatedHelperService).getAuthenticatedUser(email);
+        verify(projectRepository).findByIdAndUsersId(1L, user.getId());
+        verify(taskMapper).toTask(request);
+        verify(taskRepository).save(task);
+        verify(taskMapper).toTaskResponse(savedTask);
+
+        assertEquals(Priority.Low, task.getPriority());
     }
 
     @Test
     void testSetTaskPriority() {
-        Users user = new Users();
-        user.setUsername("admin");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user = usersRepository.save(user);
-
-        Project project = new Project();
-        project.setName("Test Project");
-        project.setDescription("Test");
-        project.setUsers(user);
-        project = projectRepository.save(project);
-
-        Task task = new Task();
-        task.setTitle("Test Task");
-        task.setDescription("Test");
-        task.setProject(project);
-        task = taskRepository.save(task);
+        String email = "user@example.com";
 
         TaskPriorityRequest request = new TaskPriorityRequest();
-        request.setTaskId(task.getId());
+        request.setTaskId(1L);
         request.setPriority(Priority.High);
 
-        task.setPriority(request.getPriority());
-        task = taskRepository.save(task);
+        Users user = new Users();
+        user.setId(5L);
 
-        Optional<Task> tasksWithHighPriority = taskRepository.findByPriority(Priority.High);
-        assertFalse(tasksWithHighPriority.isEmpty(), "High priority tasks should exist");
-        Task finalTask = task;
-        assertTrue(tasksWithHighPriority.stream().anyMatch(t -> t.getId().equals(finalTask.getId())),
-                "Saved task should have High priority");
+        Task task = new Task();
+        task.setId(1L);
+        task.setPriority(Priority.Medium);
+
+        Project project = new Project();
+        project.setUsers(user);
+        task.setProject(project);
+
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(taskRepository.findByIdAndProject_UsersId((task.getId()), user.getId()))
+                .thenReturn(Optional.of(task));
+
+        taskService.setTaskPriority(email, request);
+
+        assertEquals(Priority.High, task.getPriority());
+
+        verify(taskRepository).save(task);
     }
 
     @Test
     void testSetCompletedPriority() {
-        Users user = new Users();
-        user.setUsername("admin");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user = usersRepository.save(user);
-
-        Project project = new Project();
-        project.setName("Test Project");
-        project.setDescription("Test");
-        project.setUsers(user);
-        project = projectRepository.save(project);
-
-        Task task = new Task();
-        task.setTitle("Test Task");
-        task.setDescription("Test");
-        task.setProject(project);
-        task = taskRepository.save(task);
+        String email = "user@example.com";
 
         TaskCompletedRequest request = new TaskCompletedRequest();
-        request.setTaskId(task.getId());
-        request.setCompleted(false);
+        request.setTaskId(1L);
+        request.setCompleted(true);
 
-        task.setCompleted(request.getCompleted());
-        task = taskRepository.save(task);
+        Users user = new Users();
+        user.setId(1L);
 
-        Optional<Task> taskWithFalseCompleted = taskRepository.findByCompleted(false);
-        assertFalse(taskWithFalseCompleted.isEmpty(), "Tasks should exist");
-        assertTrue(taskRepository.findById(task.getId()).isPresent());
+        Project project = new Project();
+        project.setUsers(user);
+
+        Task task = new Task();
+        task.setId(1L);
+        task.setCompleted(false);
+        task.setProject(project);
+
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(taskRepository.findByIdAndProject_UsersId(1L, 1L)).thenReturn(Optional.of(task));
+
+        taskService.setCompletedTask(email, request);
+
+        assertTrue(task.getCompleted());
+        verify(taskRepository).save(task);
     }
 
     @Test
     void testEditTask() {
+        String email = "user@example.com";
+        Long taskId = 1L;
+
         Users user = new Users();
-        user.setUsername("admin");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user = usersRepository.save(user);
+        user.setId(100L);
+        user.setEmail(email);
 
         Project project = new Project();
-        project.setName("Test Project");
-        project.setDescription("Test");
         project.setUsers(user);
-        project = projectRepository.save(project);
 
         Task task = new Task();
-        task.setTitle("Test Task");
-        task.setDescription("Test");
+        task.setId(taskId);
         task.setProject(project);
-        task = taskRepository.save(task);
+        task.setCompleted(false);
 
-        TaskEditRequest request = new TaskEditRequest();
-        request.setTaskId(task.getId());
-        request.setTitle("Test Request");
-        request.setDescription("Request");
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task = taskRepository.save(task);
+        taskService.updateTask(email, taskId, t -> t.setCompleted(true));
 
-        assertTrue(taskRepository.findByTitle(request.getTitle()).isPresent());
+        assertTrue(task.getCompleted());
+        verify(taskRepository).save(task);
     }
 
     @Test
     void testDeleteTask() {
+        String email = "user@example.com";
+        Long taskId = 1L;
+
         Users user = new Users();
-        user.setUsername("admin");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user = usersRepository.save(user);
+        user.setId(10L);
 
         Project project = new Project();
-        project.setName("Test Project");
-        project.setDescription("Test");
         project.setUsers(user);
-        project = projectRepository.save(project);
 
         Task task = new Task();
-        task.setTitle("Test Task");
-        task.setDescription("Test");
+        task.setId(taskId);
         task.setProject(project);
-        task = taskRepository.save(task);
 
-        taskService.deleteTask(user.getEmail(), task.getId());
+        when(authenticatedHelperService.getAuthenticatedUser(email)).thenReturn(user);
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        assertFalse(taskRepository.findById(task.getId()).isPresent());
+        taskService.deleteTask(email, taskId);
+
+        verify(taskRepository).deleteById(taskId);
     }
 }

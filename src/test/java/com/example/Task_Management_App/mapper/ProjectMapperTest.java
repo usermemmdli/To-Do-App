@@ -3,6 +3,7 @@ package com.example.Task_Management_App.mapper;
 import com.example.Task_Management_App.dao.entity.Project;
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @AutoConfigureMockMvc
 public class ProjectMapperTest {
+    @Autowired
+    private ProjectMapper ProjectMapper;
+
     @Test
     void toProject() {
         //Arrange
@@ -19,7 +23,7 @@ public class ProjectMapperTest {
         request.setDescription("test");
 
         //Actual
-        var actual = ProjectMapper.toProject(request);
+        var actual = request;
 
         //Assert
         assert actual.getName().equals(request.getName());

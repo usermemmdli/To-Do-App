@@ -1,11 +1,9 @@
 package com.example.Task_Management_App.controller;
 
-import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dto.request.LoginRequest;
 import com.example.Task_Management_App.dto.request.SignUpRequest;
-import com.example.Task_Management_App.security.JwtService;
+import com.example.Task_Management_App.dto.response.JwtResponse;
 import com.example.Task_Management_App.service.AuthService;
-import com.example.Task_Management_App.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -36,13 +31,9 @@ public class AuthControllerTest {
     @InjectMocks
     private AuthController authController;
     @Mock
-    private UsersService usersService;
     private ObjectMapper objectMapper;
-    private MockMvc mockMvc;
     @Autowired
-    private JwtService jwtService;
-    @Mock
-    private AuthenticationManager authenticationManager;
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
@@ -71,31 +62,24 @@ public class AuthControllerTest {
     }
 
     @Test
-    void login_ValidCredentials_ReturnsToken() throws Exception {
+    void testLogin() throws Exception {
         // Arrange
-        Users users = new Users();
-        users.setUsername("admin");
-        users.setPassword("test123");
-        users.setEmail("admin@admin.com");
-
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail(users.getEmail());
-        loginRequest.setPassword(users.getPassword());
+        loginRequest.setEmail("test@example.com");
+        loginRequest.setPassword("password");
 
-        Authentication authentication = mock(Authentication.class);
-        String expectedToken = "dummy.jwt.token";
+        JwtResponse jwtResponse = new JwtResponse("mockAccessToken", "mockRefreshToken");
 
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(authentication);
+        when(authService.loginUser(any(LoginRequest.class))).thenReturn(jwtResponse);
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
+                        .content(new ObjectMapper().writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(expectedToken))
-                .andDo(print());
+                .andExpect(jsonPath("$.accessToken").value("mockAccessToken"))
+                .andExpect(jsonPath("$.refreshToken").value("mockRefreshToken"));
 
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(authService, times(1)).loginUser(any(LoginRequest.class));
     }
 }
