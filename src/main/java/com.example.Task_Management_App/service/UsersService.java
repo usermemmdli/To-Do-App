@@ -3,6 +3,7 @@ package com.example.Task_Management_App.service;
 import com.example.Task_Management_App.dao.entity.Users;
 import com.example.Task_Management_App.dao.repository.UsersRepository;
 import com.example.Task_Management_App.dto.request.UserChangePasswordRequest;
+import com.example.Task_Management_App.dto.request.UserDeleteRequest;
 import com.example.Task_Management_App.dto.request.UserEditRequest;
 import com.example.Task_Management_App.dto.response.UserResponse;
 import com.example.Task_Management_App.exception.InvalidPasswordException;
@@ -35,8 +36,7 @@ public class UsersService {
 
     public void changePassword(String currentUserEmail, UserChangePasswordRequest userChangePasswordRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        if (userChangePasswordRequest.getOldPassword() != null &&
-                passwordEncoder.matches(userChangePasswordRequest.getOldPassword(), users.getPassword())) {
+        if (userChangePasswordRequest.getOldPassword() != null && passwordEncoder.matches(userChangePasswordRequest.getOldPassword(), users.getPassword())) {
             users.setPassword(passwordEncoder.encode(userChangePasswordRequest.getNewPassword()));
         } else {
             throw new InvalidPasswordException("Password does not match");
@@ -44,11 +44,12 @@ public class UsersService {
         usersRepository.save(users);
     }
 
-    public void deleteUser(String currentUserEmail, Long id) {
+    public void deleteUser(String currentUserEmail, UserDeleteRequest userDeleteRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        if (!users.getId().equals(id)) {
+        if (passwordEncoder.matches(userDeleteRequest.getPassword(), users.getPassword())) {
+            usersRepository.delete(users);
+        } else {
             throw new UserCannotDeletedException("User cannot be deleted! User does not belong to the user");
         }
-        usersRepository.deleteById(id);
     }
 }

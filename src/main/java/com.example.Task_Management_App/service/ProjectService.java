@@ -25,33 +25,29 @@ public class ProjectService {
 
     public ProjectResponse createProject(String currentUserEmail, ProjectRequest projectRequest) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        Project project = projectMapper.toProject(projectRequest);
+        Project project = new Project();
+        project.setName(projectRequest.getName());
+        project.setDescription(projectRequest.getDescription());
         project.setUsers(users);
-        Project savedProject = projectRepository.save(project);
-        return projectMapper.toProjectResponse(savedProject);
+        project.setCreatedAt(Timestamp.from(Instant.now()));
+        projectRepository.save(project);
+        return projectMapper.toProjectResponse(project);
     }
 
     public ProjectResponse editProject(String currentUserEmail, ProjectEditRequest projectEditRequest) {
-        Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+        authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         return projectRepository.findById(projectEditRequest.getProjectId())
                 .map(project -> {
-                    if (projectEditRequest.getName() != null) {
-                        project.setName(projectEditRequest.getName());
-                    }
-                    if (projectEditRequest.getDescription() != null) {
-                        project.setDescription(projectEditRequest.getDescription());
-                    }
-                    project.setUsers(users);
+                    project.setName(projectEditRequest.getName());
+                    project.setDescription(projectEditRequest.getDescription());
                     project.setUpdatedAt(Timestamp.from(Instant.now()));
                     return projectMapper.toProjectResponse(projectRepository.save(project));
-                })
-                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+                }).orElseThrow(() -> new ProjectNotFoundException("Project not found"));
     }
 
     public void deleteProject(String currentUserEmail, Long id) {
         Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+        Project project = projectRepository.findById(id).orElseThrow(() -> new ProjectNotFoundException("Project not found"));
         if (!project.getUsers().getId().equals(users.getId())) {
             throw new ProjectCannotDeletedException("Project cannot be deleted! Project does not belong to the user");
         }

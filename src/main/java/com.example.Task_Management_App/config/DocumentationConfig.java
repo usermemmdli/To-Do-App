@@ -23,7 +23,7 @@ public class DocumentationConfig {
         return new OpenAPI().info(
                 new io.swagger.v3.oas.models.info.Info().title("Mustafa Mammadli")
                         .version("0.1.0")
-                        .description("E-Commerce API")
+                        .description("To-Do API")
                         .contact(
                                 new Contact()
                                         .url("linkedin.com/in/mustafa-mammadli")

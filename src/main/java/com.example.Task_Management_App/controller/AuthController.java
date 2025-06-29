@@ -37,28 +37,28 @@ public class AuthController {
         return ResponseEntity.ok(jwtResponse);
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-
-        if (refreshToken == null || !jwtService.validateToken(refreshToken)) {
-            return ResponseEntity.status(401).body("Invalid refresh token");
-        }
-
-        String email = jwtService.extractUsername(refreshToken);
-
-        if (email == null) {
-            return ResponseEntity.status(401).body("Invalid refresh token");
-        }
-
-        Users users = usersRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        String newAccessToken = jwtService.createAccessToken(users);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("accessToken", newAccessToken);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+//    @PostMapping("/refresh-token")
+//    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+//        String refreshToken = request.get("refreshToken");
+//
+//        if (refreshToken == null || !jwtService.validateToken(refreshToken)) {
+//            return ResponseEntity.status(401).body("Invalid refresh token");
+//        }
+//
+//        String email = jwtService.extractUsername(refreshToken);
+//
+//        if (email == null) {
+//            return ResponseEntity.status(401).body("Invalid refresh token");
+//        }
+//
+//        Users users = usersRepository.findByEmail(email)
+//                .orElseThrow(() -> new UserNotFoundException("User not found"));
+//
+//        String newAccessToken = jwtService.createAccessToken(users);
+//
+//        Map<String, String> response = new HashMap<>();
+//        response.put("accessToken", newAccessToken);
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//    }
 }

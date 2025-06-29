@@ -1,10 +1,10 @@
 package com.example.Task_Management_App.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class SignUpRequest {
-    private String username;
-    private String email;
+public class UserDeleteRequest {
+    @NotNull
     private String password;
 }

@@ -1,6 +1,7 @@
 package com.example.Task_Management_App.controller;
 
 import com.example.Task_Management_App.dto.request.UserChangePasswordRequest;
+import com.example.Task_Management_App.dto.request.UserDeleteRequest;
 import com.example.Task_Management_App.dto.request.UserEditRequest;
 import com.example.Task_Management_App.dto.response.UserResponse;
 import com.example.Task_Management_App.security.AuthenticatedHelperService;
@@ -34,11 +35,11 @@ public class UsersController {
         usersService.changePassword(currentUserEmail, userChangePasswordRequest);
     }
 
-    @DeleteMapping("/delete-user/{id}")
+    @DeleteMapping("/delete-user")
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteUser(@RequestBody UserDeleteRequest userDeleteRequest) {
         String currentUserEmail = authenticatedHelperService.getCurrentUserEmail();
-        usersService.deleteUser(currentUserEmail, id);
+        usersService.deleteUser(currentUserEmail, userDeleteRequest);
     }
 }

@@ -20,10 +20,10 @@ public class MyUsersDetailsService implements UserDetailsService {
         Users users = usersRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
-        return User
+        return org.springframework.security.core.userdetails.User
                 .withUsername(users.getEmail())
                 .password(users.getPassword())
-                .authorities("ROLE_USER")
+                .authorities("ROLE_" + users.getRoles().getName())
                 .build();
     }
 }

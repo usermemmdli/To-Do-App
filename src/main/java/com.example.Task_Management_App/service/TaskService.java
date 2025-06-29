@@ -63,28 +63,29 @@ public class TaskService {
                 task -> task.setCompleted(taskCompletedRequest.getCompleted()));
     }
 
-    private void updateTask(String currentUserEmail, Long id,
-                            Consumer<Task> updateFunction) {
-        Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+    public void updateTask(String currentUserEmail, Long id, Consumer<Task> updateFunction) {
+        Users user = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found or does not belong to the user"));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        if (!task.getProject().getUsers().getId().equals(user.getId())) {
+            throw new TaskNotFoundException("Task not found or does not belong to the user");
+        }
 
         updateFunction.accept(task);
         task.setUpdatedAt(Timestamp.from(Instant.now()));
         taskRepository.save(task);
     }
 
+
     public TaskResponse editTask(String currentUserEmail,
                                  @Valid TaskEditRequest editTaskRequest) {
-        Users users = authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
+        authenticatedHelperService.getAuthenticatedUser(currentUserEmail);
         return taskRepository.findById(editTaskRequest.getTaskId())
                 .map(task -> {
-                    if (editTaskRequest.getTitle() != null) {
-                        task.setTitle(editTaskRequest.getTitle());
-                    }
-                    if (editTaskRequest.getDescription() != null) {
-                        task.setDescription(editTaskRequest.getDescription());
-                    }
+                    task.setTitle(editTaskRequest.getTitle());
+                    task.setDescription(editTaskRequest.getDescription());
                     task.setUpdatedAt(Timestamp.from(Instant.now()));
                     return taskMapper.toTaskResponse(taskRepository.save(task));
                 })

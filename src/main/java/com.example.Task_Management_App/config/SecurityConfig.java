@@ -31,9 +31,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/api/project/**",
-                                "/api/task/**",
-                                "/api/users/**").hasRole("USER")
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/project/**").hasRole("USER")
+                        .requestMatchers("/api/task/**").hasRole("USER")
+                        .requestMatchers("/api/users/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .anonymous(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtAuthFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class);
