@@ -4,16 +4,12 @@ import com.example.Task_Management_App.dao.entity.Project;
 import com.example.Task_Management_App.dto.request.ProjectRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
-@AutoConfigureMockMvc
 public class ProjectMapperTest {
     @Autowired
-    private ProjectMapper ProjectMapper;
+    private ProjectMapper projectMapper;
 
     @Test
     void toProject() {
@@ -31,12 +27,12 @@ public class ProjectMapperTest {
     }
 
     @Test
-    void toProjectResponse(){
+    void toProjectResponse() {
         var request = new Project();
         request.setName("test");
         request.setDescription("test");
 
-        var actual = ProjectMapper.toProjectResponse(request);
+        var actual = projectMapper.toProjectResponse(request);
 
         assert actual.getName().equals(request.getName());
         assert actual.getDescription().equals(request.getDescription());
