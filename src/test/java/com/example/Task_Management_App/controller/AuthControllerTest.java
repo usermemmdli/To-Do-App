@@ -51,6 +51,8 @@ public class AuthControllerTest {
         signUpRequest.setPassword("test123");
         signUpRequest.setEmail("admin@admin.com");
 
+        doNothing().when(authService).signUpUser(any(SignUpRequest.class));
+
         // Act & Assert
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)

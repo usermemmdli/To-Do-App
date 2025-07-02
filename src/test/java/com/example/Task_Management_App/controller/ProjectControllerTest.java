@@ -92,6 +92,7 @@ public class ProjectControllerTest {
         String currentUserEmail = "user@example.com";
 
         when(authenticatedHelperService.getCurrentUserEmail()).thenReturn(currentUserEmail);
+        doNothing().when(projectService).deleteProject(currentUserEmail, projectId);
 
         mockMvc.perform(delete("/api/project/delete-project/{id}", projectId)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
